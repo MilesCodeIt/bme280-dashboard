@@ -22,20 +22,6 @@ bindings@^1.5.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bme280-sensor@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/bme280-sensor/-/bme280-sensor-0.1.7.tgz#39cef5cb0f8d4dfba3e2c037e8f6a412e9af0ddb"
-  integrity sha512-8+ss7jXMpRUUaR6bJWcvCt1bwdNqcusGjQtsuSqh5xTEZhJocDX21eo/j1g0zVZW9WEn4JAGNXyGwKTx4/Dj+A==
-  dependencies:
-    i2c-bus "^5.1.0"
-
-bme280@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/bme280/-/bme280-2.1.1.tgz#d347707f4520818f7b0e7d53b5dd0ebe6ead900c"
-  integrity sha512-1CIZ/V7tXFY2woe0wXMVNuaEMIBJloFDjritwOwtlFbufkKqX/FMinh7DCgffLkHsVjfAQw2dPHx84A4Imv7uQ==
-  dependencies:
-    i2c-bus "^5.2.2"
-
 body-parser@1.19.1:
   version "1.19.1"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.19.1.tgz#1499abbaa9274af3ecc9f6f10396c995943e31d4"
@@ -198,7 +184,7 @@ http-errors@1.8.1:
     statuses ">= 1.5.0 < 2"
     toidentifier "1.0.1"
 
-i2c-bus@^5.1.0, i2c-bus@^5.2.2:
+i2c-bus@^5.2.2:
   version "5.2.2"
   resolved "https://registry.yarnpkg.com/i2c-bus/-/i2c-bus-5.2.2.tgz#0c727f5e99443c5734b4f0e05b45748ba85008fa"
   integrity sha512-b2y/et08rqggEjqod6QxV0Ng+RlSkZXsdE+E1aZEQBahepZ9uFD9XfA77Y8O9SgyhwfGEn+CNxsw0gvXW1/m4g==
