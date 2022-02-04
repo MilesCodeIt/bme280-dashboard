@@ -1,15 +1,13 @@
-const bme280 = require("bme280");
+import * as bme280 from "./utils/bme280.js";
 
 const format = number => (Math.round(number * 100) / 100).toFixed(2);
 const delay = millis => new Promise(resolve => setTimeout(resolve, millis));
 
 const reportContinuous = async _ => {
-  const sensor = await bme280.open({
-    i2cBusNumber: 1,
-    i2cAddress: 0x76
-  });
+  const sensor = await bme280.open();
 
-  for (let i = 1; i <= 250; ++i) {
+  // 10 calculs.
+  for (let i = 1; i <= 10; ++i) {
     const reading = await sensor.read();
     console.log(
       `${i} ` +

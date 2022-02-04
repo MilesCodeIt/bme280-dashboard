@@ -2,13 +2,12 @@
   "name": "bme280-dashboard",
   "version": "0.0.0",
   "main": "./src/index.js",
+  "type": "module",
   "repository": "https://github.com/MilesCodeIt/bme280-dashboard",
   "author": "Miles <contact@milescode.dev>",
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "bme280": "^2.1.1",
-    "bme280-sensor": "^0.1.7",
     "express": "^4.17.2",
     "express-ws": "^5.0.2",
     "i2c-bus": "^5.2.2"
