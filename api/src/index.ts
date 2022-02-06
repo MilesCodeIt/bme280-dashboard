@@ -21,9 +21,9 @@ app.use("/api", api);
 
 // Dashboard (when production).
 // JSON message (on development).
-app.use("/",
+app.use(
   isProduction
-    ? express.static(path.join(__dirname, "../public"))
+    ? express.static(path.join(__dirname, "./public"))
     : (req, res) => {
       res.status(200).json({
         success: true,
