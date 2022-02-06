@@ -1,12 +1,14 @@
 import express from "express";
 import expressWs from "express-ws";
 import path from "path";
+import minimist from "minimist";
 
 // API routes defined below.
 import api from "./routes";
 
 // Production ENV key.
 const isProduction = process.env.NODE_ENV === "production";
+const args = minimist(process.argv.slice(2));
 
 // Create the web server, including WebSockets.
 const { app } = expressWs(express());
@@ -19,7 +21,7 @@ app.use("/api", api);
 
 // Dashboard (when production).
 // JSON message (on development).
-app.use(
+app.use("/",
   isProduction
     ? express.static(path.join(__dirname, "../public"))
     : (req, res) => {
@@ -31,7 +33,7 @@ app.use(
     }
 );
 
-const PORT = 8080;
+const PORT = parseInt(args.port) || 8080;
 app.listen(PORT, () => {
   console.info(
     !isProduction
