@@ -2,11 +2,17 @@
  * Code pris de https://github.com/fivdi/bme280/blob/master/bme280.js
  * et légérement adapté pour notre projet.
  */
-
+import type { PromisifiedBus } from "i2c-bus";
 import i2c from "i2c-bus";
 
 const DEFAULT_I2C_BUS = 1;
 const DEFAULT_I2C_ADDRESS = 0x76;
+
+type Bme280ReadResponse = {
+  temperature: number;
+  humidity: number;
+  pressure: number;
+};
 
 export const OVERSAMPLE = {
   SKIPPED: 0,
@@ -92,11 +98,22 @@ const CONFIG = {
 };
 
 /**
- * @param {Number} milliseconds - Temps à attendre en ms.
- * @returns {Promise<void>}
+ * @param milliseconds - Temps à attendre en ms.
  */
-const delay = (milliseconds) =>
+const delay = (milliseconds: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, milliseconds + 1));
+
+
+type BmeOpenOptions = {
+  i2cBusNumber: number;
+  i2cAddress: number;
+  humidityOversampling: number;
+  pressureOversampling: number;
+  temperatureOversampling: number;
+  filterCoefficient: number;
+  standby: number;
+  forcedMode: boolean;
+};
 
 export const open = async (options = {
   i2cBusNumber: DEFAULT_I2C_BUS,
@@ -120,20 +137,20 @@ export const open = async (options = {
   return device;
 };
 
-const validateOpenOptions = options => {
+const validateOpenOptions = (options: BmeOpenOptions) => {
   if (typeof options !== 'object') {
     throw new Error('Expected options to be of type object.' +
       ` Got type ${typeof options}.`);
   }
 
-  if (options.hasOwnProperty('i2cBusNumber') &&
+  if (options.i2cBusNumber &&
       (!Number.isSafeInteger(options.i2cBusNumber) ||
        options.i2cBusNumber < 0)) {
     throw new Error('Expected i2cBusNumber to be a non-negative integer.' +
       ` Got "${options.i2cBusNumber}".`);
   }
 
-  if (options.hasOwnProperty('i2cAddress') &&
+  if (options.i2cAddress &&
       (!Number.isSafeInteger(options.i2cAddress) ||
        options.i2cAddress < 0 ||
        options.i2cAddress > 0x7f)) {
@@ -141,37 +158,37 @@ const validateOpenOptions = options => {
       ` >= 0 and <= 0x7f. Got "${options.i2cAddress}".`);
   }
 
-  if (options.hasOwnProperty('humidityOversampling') &&
+  if (options.humidityOversampling &&
       !Object.values(OVERSAMPLE).includes(options.humidityOversampling)) {
     throw new Error('Expected humidityOversampling to be a value from' +
       ` Enum OVERSAMPLE. Got "${options.humidityOversampling}".`);
   }
 
-  if (options.hasOwnProperty('pressureOversampling') &&
+  if (options.pressureOversampling &&
       !Object.values(OVERSAMPLE).includes(options.pressureOversampling)) {
     throw new Error('Expected pressureOversampling to be a value from' +
       ` Enum OVERSAMPLE. Got "${options.pressureOversampling}".`);
   }
 
-  if (options.hasOwnProperty('temperatureOversampling') &&
+  if (options.temperatureOversampling &&
       !Object.values(OVERSAMPLE).includes(options.temperatureOversampling)) {
     throw new Error('Expected temperatureOversampling to be a value from' +
       ` Enum OVERSAMPLE. Got "${options.temperatureOversampling}".`);
   }
 
-  if (options.hasOwnProperty('standby') &&
+  if (options.standby &&
       !Object.values(STANDBY).includes(options.standby)) {
     throw new Error('Expected standby to be a value from Enum' +
       ` STANDBY. Got "${options.standby}".`);
   }
 
-  if (options.hasOwnProperty('filterCoefficient') &&
+  if (options.filterCoefficient &&
       !Object.values(OVERSAMPLE).includes(options.filterCoefficient)) {
     throw new Error('Expected filterCoefficient to be a value from Enum' +
       ` FILTER. Got "${options.filterCoefficient}".`);
   }
 
-  if (options.hasOwnProperty('forcedMode') &&
+  if (options.forcedMode &&
       typeof options.forcedMode !== 'boolean') {
     throw new Error('Expected forcedMode to be a value of type' +
       ` boolean. Got type "${typeof options.forcedMode}".`);
@@ -179,27 +196,39 @@ const validateOpenOptions = options => {
 };
 
 class Bme280I2c {
-  constructor (i2cBus, options) {
+  private _i2cBus: PromisifiedBus;
+  private _opts: BmeOpenOptions;
+  private _coefficients: { [key: string]: number } | null;
+  private forcedMode: boolean | undefined;
+
+  constructor (
+    i2cBus: PromisifiedBus,
+    options: BmeOpenOptions
+  ) {
     this._i2cBus = i2cBus;
     this._opts = options;
     this._coefficients = null;
   }
 
-  readByte (register) {
+  readByte (register: number) {
     return this._i2cBus.readByte(this._opts.i2cAddress, register);
   }
 
-  writeByte (register, byte) {
+  writeByte (register: number, byte: number) {
     return this._i2cBus.writeByte(this._opts.i2cAddress, register, byte);
   }
 
-  readI2cBlock (register, length, buffer) {
+  readI2cBlock (
+    register: number,
+    length: number,
+    buffer: Buffer
+  ) {
     return this._i2cBus.readI2cBlock(
       this._opts.i2cAddress, register, length, buffer
     );
   }
 
-  async checkChipId (tries = 5) {
+  async checkChipId (tries = 5): Promise<void> {
     try {
       const chipId = await this.readByte(REGS.CHIP_ID);
 
@@ -224,7 +253,7 @@ class Bme280I2c {
     return this.writeByte(REGS.RESET, SOFT_RESET_COMMAND);
   }
 
-  async waitForImageRegisterUpdate (tries = 5) {
+  async waitForImageRegisterUpdate (tries = 5): Promise<void> {
     await delay(2);
 
     const statusReg = await this.readByte(REGS.STATUS);
@@ -338,15 +367,17 @@ class Bme280I2c {
     };
   }
 
-  compensateTemperature (adcT) {
+  compensateTemperature (adcT: number) {
     const c = this._coefficients;
+    if (!c) return;
 
     return ((adcT / 16384 - c.t1 / 1024) * c.t2) +
       ((adcT / 131072 - c.t1 / 8192) * (adcT / 131072 - c.t1 / 8192) * c.t3);
   }
 
-  compensateHumidity (adcH, tFine) {
+  compensateHumidity (adcH: number, tFine: number) {
     const c = this._coefficients;
+    if (!c) return;
 
     let h = tFine - 76800;
     h = (adcH - (c.h4 * 64 + c.h5 / 16384 * h)) *
@@ -362,8 +393,9 @@ class Bme280I2c {
     return h;
   }
 
-  compensatePressure (adcP, tFine) {
+  compensatePressure (adcP: number, tFine: number) {
     const c = this._coefficients;
+    if (!c) return;
 
     let var1 = tFine / 2 - 64000;
     let var2 = var1 * var1 * c.p6 / 32768;
@@ -385,17 +417,18 @@ class Bme280I2c {
     return p;
   }
 
-  compensateRawData (rawData) {
-    const tFine = this.compensateTemperature(rawData.temperature);
+  compensateRawData (rawData: Bme280ReadResponse) {
+    const tFine = this.compensateTemperature(rawData.temperature) as number;
+
     let pressure = this.compensatePressure(rawData.pressure, tFine);
     let humidity = this.compensateHumidity(rawData.humidity, tFine);
 
-    let temperature = tFine / 5120;
+    let temperature: number | undefined = tFine / 5120;
     if (this._opts.temperatureOversampling === OVERSAMPLE.SKIPPED) {
       temperature = undefined;
     }
 
-    pressure = pressure / 100;
+    if (pressure) pressure /= 100;
     if (this._opts.pressureOversampling === OVERSAMPLE.SKIPPED) {
       pressure = undefined;
     }
@@ -487,7 +520,9 @@ class Bme280I2c {
 }
 
 class Bme280 {
-  constructor(bme280I2c) {
+  private _bme280I2c: Bme280I2c;
+
+  constructor(bme280I2c: Bme280I2c) {
     this._bme280I2c = bme280I2c;
   }
 

@@ -1,0 +1,21 @@
+{
+  "name": "bme280-dashboard",
+  "version": "0.0.0",
+  "main": "./output/index.js",
+  "description": "Show informations from a BME280 in a dashboard.",
+  "repository": "https://github.com/MilesCodeIt/bme280-dashboard",
+  "author": "Miles <contact@milescode.dev>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build-api": "cd api && yarn build",
+    "build-dashboard": "rimraf ./dashboard/dist && cd dashboard && yarn build",
+    "build": "rimraf ./output && yarn build-api && yarn build-dashboard && mv ./api/dist ./output && mv ./dashboard/dist ./output/public && symlink-dir ./api/node_modules ./output/node_modules",
+    "start": "cross-env NODE_ENV=production node ."
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "rimraf": "^3.0.2",
+    "symlink-dir": "^5.0.1"
+  }
+}
