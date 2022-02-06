@@ -45,7 +45,7 @@ yarn build
 
 Finally, start the server !
 ```bash
-yarn start --port 8080 --bus-number 1 --bme280-address 118
+yarn start --port 8080 --bus-number 1 --bme280-address 118 --sql-file ./data.sqlite
 ```
 - `--port`
   - Type: `number`.
@@ -56,8 +56,11 @@ yarn start --port 8080 --bus-number 1 --bme280-address 118
 - `--bme280-address`
   - Type: `number`.
   - Defaults to `118` (so `0x76` in **hexadecimal**).
+- `--sql-file`
+  - Type: `string` (path).
+  - Defaults to `path.join(process.cwd(), "./data.sqlite")`.
 
-Now navigate to port 8080 and you'll see the dashboard.
+Now navigate to port 8080 (or `--port` value) and you'll see the dashboard.
 
 ## Credits
 
