@@ -1,43 +1,41 @@
-import * as bme280 from "./utils/bme280";
-import getAltitudeFromPressure from "./utils/getAltitudeFromPressure";
+import express from "express";
+import expressWs from "express-ws";
+import path from "path";
 
-const format = (number: number) => (Math.round(number * 100) / 100).toFixed(2);
+// API routes defined below.
+import api from "./routes";
 
-const delay = (millis: number) => new Promise(resolve => setTimeout(resolve, millis));
+// Production ENV key.
+const isProduction = process.env.NODE_ENV === "production";
 
-const reportContinuous = async () => {
-  const sensor = await bme280.open();
+// Create the web server, including WebSockets.
+const { app } = expressWs(express());
 
-  // 10 calculs.
-  for (let i = 1; i <= 10; ++i) {
-    const reading = await sensor.read();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-    const temperature = reading.temperature
-      ? format(reading.temperature)
-      : 0;
-    const pressure = reading.pressure
-      ? format(reading.pressure)
-      : 0;
-    const humidity = reading.humidity
-      ? format(reading.humidity)
-      : 0;
-    const altitude = reading.pressure
-      ? getAltitudeFromPressure(reading.pressure)
-      : 0;
+// API routes.
+app.use("/api", api);
 
-    const data = {
-      temperature,
-      pressure,
-      humidity,
-      altitude
-    };
+// Dashboard (when production).
+// JSON message (on development).
+app.use(
+  isProduction
+    ? express.static(path.join(__dirname, "../public"))
+    : (req, res) => {
+      res.status(200).json({
+        success: true,
+        message: "Development server. Only '/api/*' routes are available. You also need to proxy '/api/*' to Vite.",
+        href: req.protocol + '://' + req.get("host")
+      });
+    }
+);
 
-    console.info(data);
-
-    await delay(sensor.typicalMeasurementTime()); // 40 milliseconds, 25Hz
-  }
-
-  await sensor.close();
-};
-
-reportContinuous().catch(console.log);
+const PORT = 8080;
+app.listen(PORT, () => {
+  console.info(
+    !isProduction
+      ? `[API] Ready on port ${PORT}. Needs to be proxied in 'vite.config.js'.`
+      : `[Server] Ready on port ${PORT}`
+  );
+});
