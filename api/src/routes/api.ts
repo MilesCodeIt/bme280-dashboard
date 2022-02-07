@@ -6,7 +6,6 @@ import express from "express";
 
 import { database_events } from "../utils/database";
 import * as bme280 from "../utils/bme280";
-import {parse} from "path/posix";
 
 export default function createApiRoutes (
   database: Database
