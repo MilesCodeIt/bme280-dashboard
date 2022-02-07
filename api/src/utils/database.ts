@@ -48,7 +48,7 @@ export class Database {
     }
     catch (e) {
       console.error(e);
-      throw Error ("Erreur lors de la sauvgarde de la BDD.");
+      throw Error ("Erreur lors de la sauvegarde de la BDD.");
     }
   }
 
@@ -60,10 +60,10 @@ export class Database {
     to: null
   }) {
     try {
-      const addTimestamp = options.from && options.to;
       let sql = "SELECT * FROM sensor_data";
 
-      if (addTimestamp) {
+      // Ajoute le filtre, si nécessaire.
+      if (options.from && options.to) {
         sql += " " + "WHERE timestamp BETWEEN ? AND ?";
       }
 
@@ -74,15 +74,17 @@ export class Database {
       const stmt = this.database.prepare(sql);
 
       // Ajout des valeurs si nécessaire.
-      if (addTimestamp) {
+      if (options.from && options.to) {
+        const fromTime = new Date(options.from);
+        const toTime = new Date(options.to);
+
         stmt.bind([
-          options.from,
-          options.to
+          fromTime.toISOString(),
+          toTime.toISOString()
         ]);
       }
 
       const rows = [];
-
       while (stmt.step()) {
         const current_row = stmt.getAsObject();
         rows.push(current_row);
@@ -94,7 +96,7 @@ export class Database {
     }
     catch (e) {
       console.error(e);
-      throw Error ("Erreur lors de la récupération de données depuis la BDR.");
+      throw Error ("Erreur lors de la récupération de données depuis la BDD.");
     }
   }
 }

@@ -3,16 +3,18 @@ import type { Database } from "../utils/database";
 import type { Bme280ReadResponse } from "../utils/bme280";
 
 import express from "express";
+
 import { database_events } from "../utils/database";
 import * as bme280 from "../utils/bme280";
+import {parse} from "path/posix";
 
 export default function createApiRoutes (
   database: Database
 ) {
   const router = express.Router() as Router;
 
-  // MAJ toutes les 2 minutes.
-  const update_interval = 1000 * 60 * 2;
+  // MAJ toutes les 30 secondes sur la BDD.
+  const update_interval = 1000 * 30;
   bme280.open()
     .then(device => {
       // Récupération des dernières données
@@ -36,8 +38,13 @@ export default function createApiRoutes (
 
   router.get("/data", async (req, res) => {
     try {
-      console.log(req.params);
-      const data = await database.getData();
+      const from = req.query.from as string ?? undefined;
+      const to = req.query.to as string ?? undefined;
+
+      const data = await database.getData({
+        from,
+        to
+      });
 
       res.status(200).json({
         success: true,
