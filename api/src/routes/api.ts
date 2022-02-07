@@ -32,7 +32,9 @@ export default function createApiRoutes (
     });
   });
 
-  router.ws("/ws", async (ws, req) => {
+  database_events.on("value", console.info);
+
+  router.ws("/ws", async (ws, _req) => {
     ws.on("connection", () => {
       ws.send({
         t: 0, // 'type': 0 (connection).
