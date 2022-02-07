@@ -30,6 +30,12 @@
 }
 .cards {
   display: flex;
+  *{
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 </style>
 

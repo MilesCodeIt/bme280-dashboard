@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <div class="header">
+    <div class="header" v-show="this.title">
       <div class="icon">
         <i :class="this.icon"></i>
       </div>
