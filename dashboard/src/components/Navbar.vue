@@ -1,24 +1,54 @@
 <template>
-  <router-link to="/">Home</router-link> |
-  <router-link to="/about">About</router-link>
+  <ul class="navbar">
+    <li>
+      <router-link to="/">
+        <i class="fas fa-home"></i>
+      </router-link>
+    </li>
+    <li>
+      <router-link to="/about">
+        <i class="fas fa-info"></i>
+      </router-link>
+    </li>
+  </ul>
 </template>
 
 <script>
+import { mdiAccount } from "@mdi/js";
+
 export default {
   name: "Navbar",
-
-  data() {
-    return {
-      items: [
-        { title: "Dashboard", icon: "mdi-view-dashboard" },
-        { title: "Photos", icon: "mdi-image" },
-        { title: "About", icon: "mdi-help-box" },
-      ],
-      right: null,
-    };
-  },
+  data: () => ({}),
 };
 </script>
 
-<style>
+<style scoped lang="scss">
+ul {
+  list-style: none;
+}
+
+.navbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+li {
+  margin: 10px;
+  * {
+    aspect-ratio: 1/1;
+    width: 38px;
+    text-align: center;
+    text-decoration: none;
+    color: #eceff4;
+    transition: all 0.3s;
+    padding: 10px;
+    border-radius: 5px;
+    :hover {
+      background: #eceff4;
+      color: #2e3440;
+      text-decoration: solid;
+    }
+  }
+}
 </style>

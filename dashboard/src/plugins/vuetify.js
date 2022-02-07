@@ -1,6 +1,7 @@
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+import '@fortawesome/fontawesome-free/css/all.css' // Ensure you are using css-loader
 
 // Vuetify
 import { createVuetify } from 'vuetify'

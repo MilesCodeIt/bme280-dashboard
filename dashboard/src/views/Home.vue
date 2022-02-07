@@ -1,41 +1,63 @@
 <template>
-  <div class="card">
-    <div class="header">
-      <div class="icon"></div>
-      <div class="text">
-        <div class="title"></div>
-        <div class="subtitle"></div>
+  <div class="home">
+    <h1>Dashboard :</h1>
+    <Card :title="cardValues.title" :icon="cardValues.icon">
+      <div class="mainTemperature">
+        <p>11°C</p>
       </div>
-    </div>
-    <div class="body">
-      <div class="temperature"></div>
-      <div class="pressure"></div>
-      <div class="humidity"></div>
-    </div>
+      <div class="cards">
+        <Card>
+          <p>pressure</p>
+          <p>1023</p>
+        </Card>
+        <Card>
+          <p>humidity</p>
+          <p>1023</p>
+        </Card>
+        <Card>
+          <p>pressure</p>
+          <p>1023</p>
+        </Card>
+      </div>
+    </Card>
+    <div class="card"></div>
   </div>
-  <div class="card"></div>
-  {{ values }}
 </template>
+
+<style lang="scss" scoped>
+.mainTemperature > p {
+  padding: 5px;
+}
+.cards {
+  display: flex;
+}
+</style>
 
 <script>
 // @ is an alias to /src
 import HelloWorld from "@/components/HelloWorld.vue";
 import axios from "axios";
+import Card from "../components/Card.vue";
 
 export default {
   name: "Home",
   components: {
     HelloWorld,
+    Card,
   },
   data: () => ({
     values: null,
     loading: false,
+    cardValues: {
+      title: "Gathered Data",
+      icon: "fas fa-home",
+    },
   }),
   mounted() {
     this.loading = true;
     axios
-      .get("https://reqres.in/api/users?page=1")
-      .then((response) => (this.values = response.data.data))
+      .get("https://api.github.com/")
+      .then((response) => (this.values = response.data))
       .catch((error) => console.log(error))
       .finally(() => (this.loading = false));
   },
