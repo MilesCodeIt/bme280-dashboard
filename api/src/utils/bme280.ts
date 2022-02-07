@@ -8,7 +8,7 @@ import i2c from "i2c-bus";
 const DEFAULT_I2C_BUS = 1;
 const DEFAULT_I2C_ADDRESS = 0x76;
 
-type Bme280ReadResponse = {
+export type Bme280ReadResponse = {
   temperature: number;
   humidity: number;
   pressure: number;

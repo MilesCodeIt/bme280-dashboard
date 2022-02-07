@@ -2,6 +2,10 @@ import type {
   Database as SqlDatabase
 } from "sql.js";
 
+import type {
+  Bme280ReadResponse
+} from "./bme280";
+
 import { promises as fs } from "fs";
 import path from "path";
 import initSqlJs from "sql.js";
@@ -21,16 +25,78 @@ export class Database {
     this.database = database;
   }
 
-  public async saveData () {
-    const binaryArray = this.database.export();
-
+  public async saveData (data?: Bme280ReadResponse) {
     try {
-      database_events.emit("value", { "hello": "world" });
+      if (data) {
+        // Préparation de la requête SQL.
+        const stmt = this.database.prepare("INSERT INTO sensor_data VALUES (temperature, pressure, humidity) VALUES (?t, ?p, ?h);");
+
+        // Ajout des valeurs aux paramètres.
+        stmt.bind({
+          "?t": data.temperature,
+          "?p": data.pressure,
+          "?h": data.humidity
+        });
+
+        stmt.step();
+
+        // Fermeture du STMT.
+        stmt.free();
+
+        // Envoie de l'event.
+        database_events.emit("value", data);
+      }
+
+      // Sauvegarde du fichier SQLite.
+      const binaryArray = this.database.export();
       await fs.writeFile(this.file_path, binaryArray);
     }
     catch (e) {
       console.error(e);
-      throw Error ("Erreur lors de la sauvgarde de la BDD");
+      throw Error ("Erreur lors de la sauvgarde de la BDD.");
+    }
+  }
+
+  public async getData (options: {
+    from: string | null;
+    to: string | null;
+  } = {
+    from: null,
+    to: null
+  }) {
+    try {
+      const addTimestamp = options.from && options.to;
+      let sql = "SELECT * FROM sensor_data";
+
+      if (addTimestamp) {
+        sql += " " + "WHERE timestamp BETWEEN $from AND $to";
+      }
+
+      // Ajoute le ";" à la fin.
+      sql += ";";
+
+      // Préparation de la requête.
+      const stmt = this.database.prepare(sql);
+
+      // Ajout des valeurs si nécessaire.
+      if (addTimestamp) {
+        stmt.bind({
+          $from: options.from,
+          $to: options.to
+        });
+      }
+
+      stmt.step();
+      const result = stmt.getAsObject();
+
+      // Fin de la requête.
+      stmt.free();
+
+      return result;
+    }
+    catch (e) {
+      console.error(e);
+      throw Error ("Erreur lors de la récupération de données depuis la BDR.");
     }
   }
 }
@@ -67,9 +133,9 @@ export default async function loadDatabase (
       const create_table = `CREATE TABLE sensor_data (
         id INT(16) NOT NULL PRIMARY KEY,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        temperature FLOAT(8),
-        pressure FLOAT(8),
-        humidity FLOAT(8)
+        temperature REAL,
+        pressure REAL,
+        humidity REAL
       );`;
 
       database.run(create_table);

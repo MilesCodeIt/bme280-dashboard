@@ -1,5 +1,6 @@
 import type { Router } from "express-ws";
 import type { Database } from "../utils/database";
+import type { Bme280ReadResponse } from "../utils/bme280";
 
 import express from "express";
 import { database_events } from "../utils/database";
@@ -14,10 +15,11 @@ export default function createApiRoutes (
   const update_interval = 1000 * 2;
   bme280.open()
     .then(device => {
+      // Récupération des dernières données
+      // et sauvegarde dans la BDD.
       setInterval(async () => {
-        const data = await device.read();
-        await database.saveData();
-        console.log(data);
+        const data = await device.read() as Bme280ReadResponse;
+        await database.saveData(data);
       }, update_interval);
     })
     .catch(err => {
@@ -32,7 +34,25 @@ export default function createApiRoutes (
     });
   });
 
-  database_events.on("value", console.info);
+  router.get("/data", async (req, res) => {
+    try {
+      console.log(req.params);
+      const data = await database.getData();
+
+      res.status(200).json({
+        success: true,
+        data
+      });
+    }
+    catch (e) {
+      console.error("Une erreur est survenue dans '/data'.", e);
+
+      res.status(500).json({
+        success: false,
+        error: e
+      });
+    }
+  });
 
   router.ws("/ws", async (ws, _req) => {
     ws.on("connection", () => {
@@ -44,10 +64,14 @@ export default function createApiRoutes (
 
     // À chaque sauvegarde dans la BDD, on envoie à
     // l'utilisateur les nouvelles données.
-    database_events.on("value", data => {
+    database_events.on("value", (data: Bme280ReadResponse) => {
       ws.send({
         t: 1, // 'type': 1 (save).
-        d: data
+        d: {
+          t: data.temperature,
+          h: data.humidity,
+          p: data.pressure
+        }
       });
     });
   });
