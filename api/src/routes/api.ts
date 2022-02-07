@@ -12,7 +12,7 @@ export default function createApiRoutes (
   const router = express.Router() as Router;
 
   // MAJ toutes les 2 minutes.
-  const update_interval = 1000 * 2;
+  const update_interval = 1000 * 60 * 2;
   bme280.open()
     .then(device => {
       // Récupération des dernières données

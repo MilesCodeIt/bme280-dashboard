@@ -64,7 +64,7 @@ export class Database {
       let sql = "SELECT * FROM sensor_data";
 
       if (addTimestamp) {
-        sql += " " + "WHERE timestamp BETWEEN $from AND $to";
+        sql += " " + "WHERE timestamp BETWEEN ? AND ?";
       }
 
       // Ajoute le ";" à la fin.
@@ -75,19 +75,22 @@ export class Database {
 
       // Ajout des valeurs si nécessaire.
       if (addTimestamp) {
-        stmt.bind({
-          $from: options.from,
-          $to: options.to
-        });
+        stmt.bind([
+          options.from,
+          options.to
+        ]);
       }
 
-      stmt.step();
-      const result = stmt.getAsObject();
+      const rows = [];
+
+      while (stmt.step()) {
+        const current_row = stmt.getAsObject();
+        rows.push(current_row);
+      }
 
       // Fin de la requête.
       stmt.free();
-
-      return result;
+      return rows;
     }
     catch (e) {
       console.error(e);
