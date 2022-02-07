@@ -62,6 +62,30 @@ yarn start --port 8080 --bus-number 1 --bme280-address 118 --sql-file ./data.sql
 
 Now navigate to port 8080 (or `--port` value) and you'll see the dashboard.
 
+## API
+
+### WS `/api/ws`
+
+Returns a WebSocket connection.
+
+When the connection is openned, a message is sended.
+It should look like this.
+
+```json
+{
+  "t": 0,
+  "d": 1
+}
+```
+
+`t` means **type** and `d` means **data**.
+
+`t` - Type | `d` - Data
+--- | ---
+`0` - Hello (on open) | `1` for success
+`1` - Update (database) | `{ "t": number, "p": number, "h": number }` where `t` is **temperature**, `p` is **pressure** and `h` is **humidity**.
+
+
 ## Credits
 
 Thanks you...
