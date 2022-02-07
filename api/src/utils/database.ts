@@ -75,8 +75,8 @@ export class Database {
 
       // Ajout des valeurs si nécessaire.
       if (options.from && options.to) {
-        const fromTime = new Date(options.from);
-        const toTime = new Date(options.to);
+        const fromTime = new Date(parseInt(options.from));
+        const toTime = new Date(parseInt(options.to));
 
         stmt.bind([
           fromTime.toISOString(),
