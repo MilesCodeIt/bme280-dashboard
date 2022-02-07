@@ -29,14 +29,14 @@ export class Database {
     try {
       if (data) {
         // Préparation de la requête SQL.
-        const stmt = this.database.prepare("INSERT INTO sensor_data (temperature, pressure, humidity) VALUES (?t, ?p, ?h);");
+        const stmt = this.database.prepare("INSERT INTO sensor_data (temperature, pressure, humidity) VALUES (?, ?, ?);");
 
         // Ajout des valeurs aux paramètres.
-        stmt.run({
-          "?t": data.temperature,
-          "?p": data.pressure,
-          "?h": data.humidity
-        });
+        stmt.run([
+          data.temperature,
+          data.pressure,
+          data.humidity
+        ]);
 
         // Envoie de l'event.
         database_events.emit("value", data);
