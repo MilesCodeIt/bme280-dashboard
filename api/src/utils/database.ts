@@ -29,19 +29,14 @@ export class Database {
     try {
       if (data) {
         // Préparation de la requête SQL.
-        const stmt = this.database.prepare("INSERT INTO sensor_data VALUES (temperature, pressure, humidity) VALUES (?t, ?p, ?h);");
+        const stmt = this.database.prepare("INSERT INTO sensor_data (temperature, pressure, humidity) VALUES (?t, ?p, ?h);");
 
         // Ajout des valeurs aux paramètres.
-        stmt.bind({
+        stmt.run({
           "?t": data.temperature,
           "?p": data.pressure,
           "?h": data.humidity
         });
-
-        stmt.step();
-
-        // Fermeture du STMT.
-        stmt.free();
 
         // Envoie de l'event.
         database_events.emit("value", data);
@@ -131,7 +126,7 @@ export default async function loadDatabase (
 
       const database = new SQL.Database();
       const create_table = `CREATE TABLE sensor_data (
-        id INT(16) NOT NULL PRIMARY KEY,
+        id INTEGER NOT NULL PRIMARY KEY,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         temperature REAL,
         pressure REAL,
