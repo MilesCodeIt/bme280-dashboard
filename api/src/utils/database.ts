@@ -64,7 +64,7 @@ export class Database {
 
       // Ajoute le filtre, si nécessaire.
       if (options.from && options.to) {
-        sql += " " + "WHERE timestamp BETWEEN datetime(?, 'unixepoch' AND datetime(?, 'unixepoch')";
+        sql += " " + "WHERE timestamp BETWEEN datetime(?, 'unixepoch') AND datetime(?, 'unixepoch')";
       }
 
       // Ajoute le ";" à la fin.
