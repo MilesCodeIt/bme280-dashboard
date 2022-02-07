@@ -55,4 +55,4 @@ async function createApp () {
 (async () => {
   console.info("[API] Lancement du serveur Express...");
   await createApp();
-})
+})();
