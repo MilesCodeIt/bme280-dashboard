@@ -126,7 +126,7 @@ export default async function loadDatabase (
 
       const database = new SQL.Database();
       const create_table = `CREATE TABLE sensor_data (
-        id INTEGER NOT NULL PRIMARY KEY,
+        id INTEGER PRIMARY KEY,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         temperature REAL,
         pressure REAL,
