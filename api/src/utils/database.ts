@@ -10,6 +10,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import initSqlJs from "sql.js";
 import { EventEmitter } from "events";
+import {parse} from "path/posix";
 
 export const database_events = new EventEmitter();
 
@@ -64,7 +65,7 @@ export class Database {
 
       // Ajoute le filtre, si nécessaire.
       if (options.from && options.to) {
-        sql += " " + "WHERE timestamp BETWEEN ? AND ?";
+        sql += " " + "WHERE timestamp BETWEEN datetime(?, 'unixepoch' AND datetime(?, 'unixepoch')";
       }
 
       // Ajoute le ";" à la fin.
@@ -75,12 +76,12 @@ export class Database {
 
       // Ajout des valeurs si nécessaire.
       if (options.from && options.to) {
-        const fromTime = new Date(parseInt(options.from));
-        const toTime = new Date(parseInt(options.to));
+        const from = Math.round(parseInt(options.from) / 1000);
+        const to = Math.round(parseInt(options.to) / 1000);
 
         stmt.bind([
-          fromTime.toISOString(),
-          toTime.toISOString()
+          from,
+          to
         ]);
       }
 
