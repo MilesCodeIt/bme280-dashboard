@@ -5,7 +5,7 @@ import type {
 import { promises as fs } from "fs";
 import path from "path";
 import initSqlJs from "sql.js";
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export const database_events = new EventEmitter();
 
