@@ -65,7 +65,9 @@ export default function createApiRoutes (
 
     // We send every sensors update in the database to
     // the user in real-time through WebSockets.
-    database_events.on("value", (data: Bme280ReadResponse) => {
+    database_events.on("value", (data_string) => {
+      const data = JSON.parse(data_string) as Bme280ReadResponse;
+
       ws.send({
         t: 1, // 'type': 1 (save).
         d: {

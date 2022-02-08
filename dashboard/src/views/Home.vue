@@ -20,6 +20,7 @@
         </Card>
       </div>
     </Card>
+    {{this.values}}
     <div class="card"></div>
   </div>
 </template>
@@ -42,7 +43,6 @@
 <script>
 // @ is an alias to /src
 import HelloWorld from "@/components/HelloWorld.vue";
-import axios from "axios";
 import Card from "../components/Card.vue";
 
 export default {
@@ -61,11 +61,36 @@ export default {
   }),
   mounted() {
     this.loading = true;
-    axios
-      .get("https://api.github.com/")
-      .then((response) => (this.values = response.data))
-      .catch((error) => console.log(error))
+    fetch("/api/data")
+      .then((response) => response.json())
+      .then(data => (this.values = data))
+      .catch((error) => console.error(error))
       .finally(() => (this.loading = false));
+
+    let loc = window.location, new_uri;
+    if (loc.protocol === "https:") {
+        new_uri = "wss:";
+    } else {
+        new_uri = "ws:";
+    }
+    new_uri += "//" + loc.host;
+    new_uri += loc.pathname + "api/ws";
+
+    console.log(new_uri);
+
+    // Créer une connexion WebSocket
+    const socket = new WebSocket(new_uri);
+
+    // La connexion est ouverte
+    socket.addEventListener('open', function (event) {
+      socket.send('Coucou le serveur !');
+    });
+
+    // Écouter les messages
+    socket.addEventListener('message', function (event) {
+      console.log('Voici un message du serveur', event.data);
+    });
   },
+  
 };
 </script>

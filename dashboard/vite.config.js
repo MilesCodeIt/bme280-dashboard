@@ -7,9 +7,13 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://192.168.1.26:8080",
-        changeOrigin: true
+        target: "https://ef57-195-83-235-215.ngrok.io",
+        changeOrigin: true,
+        ws: true
       }
+    },
+    hmr: {
+      clientPort: 443
     }
   },
   plugins: [

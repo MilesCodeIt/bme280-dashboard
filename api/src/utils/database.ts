@@ -46,7 +46,7 @@ export class Database {
         ]);
 
         // Envoie de l'event.
-        database_events.emit("value", data);
+        database_events.emit("value", JSON.stringify(data));
       }
 
       // Sauvegarde du fichier SQLite.
