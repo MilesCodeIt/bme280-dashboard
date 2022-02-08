@@ -11,12 +11,13 @@ export default function createApiRoutes (
   database: Database
 ) {
   const router = express.Router() as Router;
+  let latest_data: Bme280ReadResponse | null = null;
 
   // Get the latest values from the sensor
   // and save them to database every 30 seconds.
   setInterval(async () => {
-    const data = await getSensorData() as Bme280ReadResponse;
-    await database.saveData(data);
+    latest_data = await getSensorData() as Bme280ReadResponse;
+    await database.saveData(latest_data);
   }, 1000 * 30);
   
   router.get("/", (req, res) => {
@@ -56,12 +57,10 @@ export default function createApiRoutes (
   // WS /api/ws
   router.ws("/ws", async (ws, _req) => {
     // Send a success response on connection.
-    ws.on("open", () => {
-      ws.send(JSON.stringify({
-        t: 0, // 'type': 0 (connection).
-        d: 1 // 'data': true
-      }));
-    });
+    ws.send(JSON.stringify({
+      t: 0, // 'type': 0 (connection).
+      d: latest_data
+    }));
 
     // We send every sensors update in the database to
     // the user in real-time through WebSockets.
@@ -70,11 +69,7 @@ export default function createApiRoutes (
 
       ws.send(JSON.stringify({
         t: 1, // 'type': 1 (save).
-        d: {
-          t: data.temperature,
-          h: data.humidity,
-          p: data.pressure
-        }
+        d: data
       }));
     });
   });
