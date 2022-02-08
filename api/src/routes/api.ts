@@ -5,28 +5,19 @@ import type { Bme280ReadResponse } from "../utils/bme280";
 import express from "express";
 
 import { database_events } from "../utils/database";
-import * as bme280 from "../utils/bme280";
+import getSensorData from "../utils/getSensorData";
 
 export default function createApiRoutes (
   database: Database
 ) {
   const router = express.Router() as Router;
 
-  // MAJ toutes les 30 secondes sur la BDD.
-  const update_interval = 1000 * 30;
-  bme280.open()
-    .then(device => {
-      // Récupération des dernières données
-      // et sauvegarde dans la BDD.
-      setInterval(async () => {
-        const data = await device.read() as Bme280ReadResponse;
-        await database.saveData(data);
-      }, update_interval);
-    })
-    .catch(err => {
-      console.error("Erreur lors de l'accès au BME280.")
-      throw err;
-    });
+  // Get the latest values from the sensor
+  // and save them to database every 30 seconds.
+  setInterval(async () => {
+    const data = await getSensorData() as Bme280ReadResponse;
+    await database.saveData(data);
+  }, 1000 * 30);
   
   router.get("/", (req, res) => {
     res.status(200).json({
@@ -35,32 +26,36 @@ export default function createApiRoutes (
     });
   });
 
+  // GET /api/data
+  // Parameters: `?from=UNIX_MS&to=UNIX_MS`.
   router.get("/data", async (req, res) => {
     try {
       const from = req.query.from as string ?? undefined;
       const to = req.query.to as string ?? undefined;
 
-      const data = await database.getData({
+      const rows = await database.getData({
         from,
         to
       });
 
       res.status(200).json({
         success: true,
-        data
+        rows
       });
     }
     catch (e) {
-      console.error("Une erreur est survenue dans '/data'.", e);
+      console.error("[/api/data]", e);
 
       res.status(500).json({
         success: false,
-        error: e
+        message: "An error happened."
       });
     }
   });
 
+  // WS /api/ws
   router.ws("/ws", async (ws, _req) => {
+    // Send a success response on connection.
     ws.on("connection", () => {
       ws.send({
         t: 0, // 'type': 0 (connection).
@@ -68,8 +63,8 @@ export default function createApiRoutes (
       });
     });
 
-    // À chaque sauvegarde dans la BDD, on envoie à
-    // l'utilisateur les nouvelles données.
+    // We send every sensors update in the database to
+    // the user in real-time through WebSockets.
     database_events.on("value", (data: Bme280ReadResponse) => {
       ws.send({
         t: 1, // 'type': 1 (save).

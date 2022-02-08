@@ -11,6 +11,9 @@ import path from "path";
 import initSqlJs from "sql.js";
 import { EventEmitter } from "events";
 
+/** Events of the database.
+ * "value": emitted on `#aveData()`.
+ */
 export const database_events = new EventEmitter();
 
 export class Database {
@@ -25,6 +28,10 @@ export class Database {
     this.database = database;
   }
 
+  /**
+   * Save data to database if datas are given.
+   * Save the final database locally.
+   */
   public async saveData (data?: Bme280ReadResponse) {
     try {
       if (data) {
@@ -52,6 +59,10 @@ export class Database {
     }
   }
 
+  /**
+   * Retrieve data from the database.
+   * - `from` and `to` are numbers in milliseconds.
+   */
   public async getData (options: {
     from: string | null;
     to: string | null;
@@ -62,19 +73,22 @@ export class Database {
     try {
       let sql = "SELECT * FROM sensor_data";
 
-      // Ajoute le filtre, si nécessaire.
+      // Take only a period of time if
+      // timestamps are given.
       if (options.from && options.to) {
         sql += " " + "WHERE timestamp BETWEEN datetime(?, 'unixepoch') AND datetime(?, 'unixepoch')";
       }
 
-      // Ajoute le ";" à la fin.
+      // Add trailling semi-colon.
       sql += ";";
 
-      // Préparation de la requête.
+      // Prepare SQL request.
       const stmt = this.database.prepare(sql);
 
-      // Ajout des valeurs si nécessaire.
+      // Bind values if needed.
       if (options.from && options.to) {
+        // Convert values from milliseconds to seconds
+        // for SQLite.
         const from = Math.round(parseInt(options.from) / 1000);
         const to = Math.round(parseInt(options.to) / 1000);
 
@@ -84,13 +98,14 @@ export class Database {
         ]);
       }
 
+      // Parsing the rows.
       const rows = [];
       while (stmt.step()) {
         const current_row = stmt.getAsObject();
         rows.push(current_row);
       }
 
-      // Fin de la requête.
+      // End the statement and return rows.
       stmt.free();
       return rows;
     }
@@ -102,29 +117,31 @@ export class Database {
 }
 
 /**
- * @param custom_path - Entry `.sqlite` point.
- * It defaults to `(process.cwd)/data.sqlite`
+ * @param custom_path - File SQLite to be used.
+ * If the file doesn't exist, it will be created.
+ * It defaults to `(process.cwd)/sensor_data.db`
  */
 export default async function loadDatabase (
   custom_path?: string
 ) {
-    if (custom_path && !custom_path.includes(".sqlite")) {
-      throw Error ("Le fichier de BDD donné n'est pas un fichier .sqlite");
-    }
-
+    // Defining the database file path.
     const default_file_path = path.join(
-      process.cwd(), "./data.sqlite"
+      process.cwd(), "./sensor_data.db"
     );
     const file_path = custom_path || default_file_path;
 
+    // Initialization of "sql.js".
     const SQL = await initSqlJs();
 
+    // Read database if file exists.
     try {
       const file_buffer = await fs.readFile(file_path);
       const database = new SQL.Database(file_buffer);
 
       return new Database(file_path, database);
     }
+    // The file don't exists, so we create a new one
+    // containing an empty table.
     catch (e) {
       const error: any = e;
       if (error.code !== "ENOENT") throw e;
@@ -138,9 +155,12 @@ export default async function loadDatabase (
         humidity REAL
       );`;
 
+      // Create the table.
       database.run(create_table);
 
       const database_class = new Database(file_path, database);
+      
+      // Save the file locally.
       await database_class.saveData();
 
       return database_class;

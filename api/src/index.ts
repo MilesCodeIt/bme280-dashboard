@@ -10,27 +10,27 @@ import loadDatabase from "./utils/database";
 const isProduction = process.env.NODE_ENV === "production";
 const args = minimist(process.argv.slice(2));
 
-/** Création du serveur Express. */
+/** Create Express server. */
 async function createApp () {
   const { app } = expressWs(express());
 
-  // Chargement de la BDD locale.
+  // Load local database (or create it).
   const database = await loadDatabase(
     args["sql-file"]
   );
 
-  // Permet de lire le body des requêtes..
+  // Read body of requests.
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  // Routes du serveur web.
+  // Routes.
   app.use("/api", createApiRoutes(database));
   app.use(
     isProduction
-      // Déploiement du build Vite (en production).
+      // In production, deploy Vite bundle.
       ? express.static(path.join(__dirname, "./public"))
 
-      // Création d'un middleware JSON (en dév).
+      // In development, deploy a JSON message.
       : (req, res) => {
         res.status(200).json({
           success: true,
@@ -44,8 +44,8 @@ async function createApp () {
   app.listen(PORT, () => {
     console.info(
       !isProduction
-        ? `[API] Disponible sur le port ${PORT}.` + " "
-          + "Ne pas oublier de proxy l'URL dans le fichier 'vite.config.js'."
+        ? `[API] Available on port ${PORT}.` + " "
+          + "Also, don't forget to proxy the URL in the file 'vite.config.js'."
         : `[Server] Ready on port ${PORT}`
     );
   });
@@ -53,6 +53,6 @@ async function createApp () {
 
 // Lancement du serveur Express.
 (async () => {
-  console.info("[API] Lancement du serveur Express...");
+  console.info("[API] Starting Express and reading database...");
   await createApp();
 })();
