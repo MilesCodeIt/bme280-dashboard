@@ -13,12 +13,15 @@ export default function createApiRoutes (
   const router = express.Router() as Router;
   let latest_data: Bme280ReadResponse | null = null;
 
-  // Get the latest values from the sensor
-  // and save them to database every 30 seconds.
-  setInterval(async () => {
+  const getLatestData = async () => {
     latest_data = await getSensorData() as Bme280ReadResponse;
     await database.saveData(latest_data);
-  }, 1000 * 30);
+  };
+
+  // Get the latest values from the sensor
+  // and save them to database every 30 seconds.
+  setInterval(getLatestData, 1000 * 30);
+  getLatestData(); // Get them on start.
   
   router.get("/", (req, res) => {
     res.status(200).json({
