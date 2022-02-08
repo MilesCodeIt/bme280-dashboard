@@ -25,7 +25,7 @@ export default {
 <style lang="scss" scoped>
 .card {
   border: solid 1px #eceff4;
-  width: fit-content;
+  width: max-content;
   padding: 10px;
   border-radius: 5px;
   .header {
