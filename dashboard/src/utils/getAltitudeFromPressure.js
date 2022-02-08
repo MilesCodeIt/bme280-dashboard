@@ -4,9 +4,7 @@
  * @param pressure - Pression de l'air en 'hPa'.
  * @returns - Altitude en 'm' (mètres).
  */
-export default function getAltitudeFromPressure (
-  pressure: number
-) {
+export default function getAltitudeFromPressure (pressure) {
   const a = pressure / 101325;
   const b = 1 / 5.25588;
   
