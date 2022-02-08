@@ -56,11 +56,11 @@ export default function createApiRoutes (
   // WS /api/ws
   router.ws("/ws", async (ws, _req) => {
     // Send a success response on connection.
-    ws.on("connection", () => {
-      ws.send({
+    ws.on("open", () => {
+      ws.send(JSON.stringify({
         t: 0, // 'type': 0 (connection).
         d: 1 // 'data': true
-      });
+      }));
     });
 
     // We send every sensors update in the database to
@@ -68,14 +68,14 @@ export default function createApiRoutes (
     database_events.on("value", (data_string) => {
       const data = JSON.parse(data_string) as Bme280ReadResponse;
 
-      ws.send({
+      ws.send(JSON.stringify({
         t: 1, // 'type': 1 (save).
         d: {
           t: data.temperature,
           h: data.humidity,
           p: data.pressure
         }
-      });
+      }));
     });
   });
 
