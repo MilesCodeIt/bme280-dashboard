@@ -58,11 +58,25 @@ yarn start --port 8080 --bus-number 1 --bme280-address 118 --sql-file ./data.sql
   - Defaults to `118` (so `0x76` in **hexadecimal**).
 - `--sql-file`
   - Type: `string` (path).
-  - Defaults to `path.join(process.cwd(), "./data.sqlite")`.
+  - Defaults to `path.join(process.cwd(), "./sensor_data.db")`.
 
 Now navigate to port 8080 (or `--port` value) and you'll see the dashboard.
 
 ## API
+
+### GET `/api`
+
+Shows informations about the instance.
+
+### GET `/api/data[?from=<FROM>&to=<TO>]`
+
+Gives data from the database.
+
+When `from` and `to` parameters aren't given, it will
+return **ALL** the rows of the database.
+
+`from` and `to` values are datetimes in UNIX epoch.
+You can get the current timestamp in JS with `Date.now()`. You can use `(new Date()).getTime()` to get timestamp from a specific date.
 
 ### WS `/api/ws`
 
@@ -70,6 +84,8 @@ Returns a WebSocket connection.
 
 When the connection is openned, a message is sended.
 It should look like this.
+
+#### On connection response
 
 ```json
 {
@@ -80,11 +96,12 @@ It should look like this.
 
 `t` means **type** and `d` means **data**.
 
+#### Every responses
+
 `t` - Type | `d` - Data
 --- | ---
 `0` - Hello (on open) | `1` for success
 `1` - Update (database) | `{ "t": number, "p": number, "h": number }` where `t` is **temperature**, `p` is **pressure** and `h` is **humidity**.
-
 
 ## Credits
 
