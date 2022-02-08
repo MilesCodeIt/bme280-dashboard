@@ -23,6 +23,7 @@ dist/
 
 # SQLite local databases
 *.sqlite
+*.db
 
 # Variables
 *.local
