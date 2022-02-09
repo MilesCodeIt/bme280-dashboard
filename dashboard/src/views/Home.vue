@@ -25,7 +25,7 @@
     </Card>
 
     <Card title="4-digits display" icon="fas fa-home">
-
+      <input v-model="displayText" placeholder="Texte de l'écran">
     </Card>
   </div>
 </template>
