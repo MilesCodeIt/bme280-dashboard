@@ -10,7 +10,7 @@
     "build": "rimraf ./dist && tsc"
   },
   "dependencies": {
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "express-ws": "^5.0.2",
     "i2c-bus": "^5.2.2",
     "minimist": "^1.2.5",
